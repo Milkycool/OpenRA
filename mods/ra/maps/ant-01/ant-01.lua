@@ -8,28 +8,41 @@
 ]]
 
 --Boolean Vars
+-- 基地是否被发现
 baseDiscovered = false
+-- 是否游戏结束
 AtEndGame = false
 
 --Basic Vars
 TimerColor = Player.GetPlayer("Spain").Color
 InsertionHelicopterType = "tran.insertion"
+-- 游戏总时长
 TimerTicks = DateTime.Minutes(18) -- 18 minutes is roughly 30 mins in the original game
 Ticks = TimerTicks
 
 --Table Vars
+-- 坦克路点组
 TankPath = { waypoint12.Location, waypoint13.Location }
+-- 直升机路点组
 InsertionPath = { waypoint12.Location, waypoint0.Location }
+-- 盟军基地建筑单位组
 AlliedBase = { WarFactory, PillBox1, PillBox2, Refinery, PowerPlant1, PowerPlant2, RepairPad, OreSilo, Barracks, RadarDome }
+-- 盟军部队单位类型组
 AlliedForces = { "2tnk" , "2tnk", "mcv" }
+-- 直升机队伍
 ChopperTeam = { "e1r1", "e1r1", "e2", "e2", "e1r1" }
 
+-- 发兵坦克
 SendTanks = function()
+	-- 播放语音
 	Media.PlaySpeechNotification(Allies, "ReinforcementsArrived")
+	-- 增援: 玩家:盟军, 单位类型:盟军部队单位类型组, 进入路点:坦克路点组, 间隔:1秒
 	Reinforcements.Reinforce(Allies, AlliedForces, TankPath, DateTime.Seconds(1))
 end
 
+-- 发兵直升机
 SendInsertionHelicopter = function()
+	-- 播放语音
 	Media.PlaySpeechNotification(Allies, "AlliedReinforcementsSouth")
 	Reinforcements.ReinforceWithTransport(Allies, InsertionHelicopterType, ChopperTeam, InsertionPath, { waypoint4.Location })
 end
@@ -107,6 +120,7 @@ GetTicks = function()
 	return Ticks
 end
 
+-- Loop
 Tick = function()
 	if SurviveObjective ~= nil then
 		if Ticks > 0 then
@@ -128,6 +142,7 @@ Tick = function()
 				UserInterface.SetMissionText(Timer, TimerColor)
 			end
 		else
+			-- 关卡结束
 			if not AtEndGame then
 				Media.PlaySpeechNotification(Allies, "SecondObjectiveMet")
 				AtEndGame = true
@@ -159,11 +174,15 @@ AddObjectives = function()
 	Camera.Position = Ranger.CenterPosition
 end
 
+-- 世界加载完毕
 WorldLoaded = function()
+	-- 加载玩家
 	Allies = Player.GetPlayer("Spain")
 	AntMan = Player.GetPlayer("AntMan")
 	Creeps = Player.GetPlayer("Creeps")
+	-- 加载其他游戏对象
 	AddObjectives()
+	-- 添加触发器
 	Trigger.OnKilled(MoneyDerrick, function()
 		Actor.Create("moneycrate", true, { Owner = Allies, Location = MoneyDerrick.Location + CVec.New(1,0) })
 	end)
